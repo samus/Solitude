@@ -3,6 +3,4 @@
 /// More dartdocs go here.
 library solitude;
 
-export 'src/solitude_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/fortress_proxy.dart';
