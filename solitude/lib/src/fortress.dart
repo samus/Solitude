@@ -1,7 +1,8 @@
 import 'dart:isolate';
 
 import 'package:solitude/src/handlers/handler.dart';
-import 'package:solitude/src/messages/command.dart';
+import 'package:solitude/src/messages/message.dart';
+import 'package:solitude/src/messages/query.dart';
 import 'package:solitude/src/messages/terminate.dart';
 
 class Fortress {
@@ -19,26 +20,36 @@ class Fortress {
       if (message is TerminateMessage) {
         break;
       }
-      if (message is Command) {
-        _handleCommand(message);
+      if (message is Message) {
+        _handleMessage(message);
         continue;
       }
       print("Fortress received an unrecognized message $message");
-      _sendPort.send("Got it");
     }
     _receivePort.close();
   }
 
-  void registerHandler<T extends Command>(Handler<T> handler) {
+  void registerHandler<T extends Message>(Handler<T> handler) {
     _hanldlers[T] = handler;
   }
 
-  void _handleCommand(Command cmd) {
-    final handler = _hanldlers[cmd.runtimeType];
+  void _handleMessage(Message msg) {
+    final handler = _hanldlers[msg.runtimeType];
     if (handler == null) {
-      print("No handler found for command $cmd");
+      print("No handler found for command $msg");
       return;
     }
-    handler.execute(cmd);
+    if (msg is Identifiable && handler is RespondingHandler) {
+      handler.handleWithResponse(msg, (response) {
+        response.messageId = msg.messageId;
+        _sendResponse(response);
+      });
+    } else {
+      handler.handle(msg);
+    }
+  }
+
+  void _sendResponse(QueryResponse response) {
+    _sendPort.send(response);
   }
 }
