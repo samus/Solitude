@@ -1,19 +1,13 @@
 import 'package:solitude/solitude.dart';
-import 'package:solitude/src/fortress.dart';
-import 'package:solitude/src/handlers/handler.dart';
-import 'package:solitude/src/messages/message.dart';
-import 'package:solitude/src/messages/query.dart';
 
 void main() async {
-  var proxy = FortressProxy();
+  final proxy = FortressProxy();
   await proxy.start(fortressMain: _fortressMain);
 
-  proxy.sendMessage(QueryCounter());
   proxy.sendMessage(IncrmentCommand(2));
   await printCounter(proxy);
 
   proxy.sendMessage(DecrementByOneCommand());
-  proxy.sendMessage(QueryCounter());
   await printCounter(proxy);
 
   await proxy.dispose();
@@ -21,7 +15,8 @@ void main() async {
 }
 
 Future<void> printCounter(FortressProxy proxy) async {
-  var response = await proxy.sendQuery(QueryCounter()) as QueryCounterResponse;
+  final response =
+      await proxy.sendQuery(QueryCounter()) as QueryCounterResponse;
   print("Counter: ${response.counter}");
 }
 
