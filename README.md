@@ -50,5 +50,20 @@ class IncrementHandler extends Handler<IncrmentCommand> {
   }
 }
 
+class QueryCounter extends Query {}
+
+class QueryCounterResponse extends QueryResponse {
+  final int counter;
+  QueryCounterResponse(this.counter);
+}
+
+class QueryCounterHandler extends Handler<QueryCounter> with RespondingHandler {
+  @override
+  void handleWithResponse(
+      QueryCounter message, void Function(QueryResponse response) respond) {
+    respond(QueryCounterResponse(counter));
+  }
+}
+
 ```
 
