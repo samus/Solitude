@@ -1,14 +1,23 @@
+import 'dart:async';
+
 import 'package:solitude/solitude.dart';
 
 void main() async {
   final proxy = FortressProxy();
   await proxy.start(fortressMain: _fortressMain);
 
+  final subscription =
+      proxy.observeQuery<QueryCounterResponse>(QueryCounter()).listen((event) {
+    print("Counter stream: ${event.counter}");
+  });
+
   proxy.sendMessage(IncrmentCommand(2));
   await printCounter(proxy);
 
   proxy.sendMessage(DecrementByOneCommand());
   await printCounter(proxy);
+
+  await subscription.cancel();
 
   await proxy.dispose();
   print("Exiting main");
@@ -25,6 +34,7 @@ void _fortressMain(Fortress fortress) {
   fortress.registerHandler(IncrementHandler());
   fortress.registerHandler(DecrementHandler());
   fortress.registerHandler(QueryCounterHandler());
+  // TODO: Register a handler of some type for the stream.
 }
 
 // The main isolate and the Fortress isolate do not share the same instance of counter.

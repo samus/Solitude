@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:solitude/src/handlers/handler.dart';
 import 'package:solitude/src/messages/message.dart';
 import 'package:solitude/src/messages/query.dart';
+import 'package:solitude/src/messages/stream.dart';
 import 'package:solitude/src/messages/terminate.dart';
 
 class Fortress {
@@ -19,6 +20,11 @@ class Fortress {
     await for (final message in _receivePort) {
       if (message is TerminateMessage) {
         break;
+      }
+      if (message is StreamMessage) {
+        // TODO Handle these messages
+        print("Received a stream message $message");
+        continue;
       }
       if (message is Message) {
         _handleMessage(message);
