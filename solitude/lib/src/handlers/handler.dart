@@ -9,5 +9,10 @@ mixin RespondingHandler<MessageType extends Message> on Handler<MessageType> {
   void handleWithResponse(
       MessageType message, void Function(QueryResponse response) respond);
 
+  @override
   void handle(MessageType message) {}
+}
+
+mixin StreamingHandler<MessageType extends Message> on Handler<MessageType> {
+  Stream<QueryResponse> open(MessageType message);
 }

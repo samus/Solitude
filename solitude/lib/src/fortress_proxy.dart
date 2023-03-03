@@ -6,6 +6,8 @@ import 'package:solitude/src/messages/query.dart';
 import 'package:solitude/src/messages/terminate.dart';
 import 'package:solitude/src/streams/stream_proxy_tracker.dart';
 
+import 'messages/stream.dart';
+
 class FortressProxy {
   final _receivePort = ReceivePort();
   final _queryTracker = _QueryTracker();
@@ -56,7 +58,7 @@ class FortressProxy {
 
   /// The proxy must be disposed when finished otherwise the proxied isolate will
   /// not be told to shutdown.  This will cause a program not to terminate properly.
-  Future<void> dispose() async {
+  void dispose() {
     _receivePort.close();
     _sendPort?.send(TerminateMessage());
   }
@@ -68,12 +70,11 @@ class FortressProxy {
       if (isFirst) {
         completer.complete(message);
         isFirst = false;
-        return;
       } else if (message is QueryResponse) {
         _handleQueryResponse(message);
-        return;
+      } else if (message is StreamResponseMessage) {
+        _streamTracker.handleResponse(message);
       }
-      print("Proxy received message $message");
     });
     return completer.future;
   }

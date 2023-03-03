@@ -19,4 +19,9 @@ class StreamProxyTracker {
     send(StreamInitiateMessage(id, query));
     return proxy.stream;
   }
+
+  void handleResponse(StreamResponseMessage message) {
+    final proxy = proxies[message.channelId];
+    proxy?.receive(message.response);
+  }
 }

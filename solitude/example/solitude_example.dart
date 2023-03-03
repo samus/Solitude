@@ -11,15 +11,17 @@ void main() async {
     print("Counter stream: ${event.counter}");
   });
 
-  proxy.sendMessage(IncrmentCommand(2));
   await printCounter(proxy);
+
+  proxy.sendMessage(IncrmentCommand(1));
+  proxy.sendMessage(IncrmentCommand(1));
 
   proxy.sendMessage(DecrementByOneCommand());
   await printCounter(proxy);
 
   await subscription.cancel();
 
-  await proxy.dispose();
+  proxy.dispose();
   print("Exiting main");
 }
 
@@ -33,8 +35,7 @@ void _fortressMain(Fortress fortress) {
   // Setup command handlers here.
   fortress.registerHandler(IncrementHandler());
   fortress.registerHandler(DecrementHandler());
-  fortress.registerHandler(QueryCounterHandler());
-  // TODO: Register a handler of some type for the stream.
+  fortress.registerHandler(queryCounterHandler);
 }
 
 // The main isolate and the Fortress isolate do not share the same instance of counter.
@@ -49,6 +50,7 @@ class IncrementHandler extends Handler<IncrmentCommand> {
   @override
   void handle(IncrmentCommand command) {
     counter += command.quantity;
+    queryCounterHandler.send(counter);
   }
 }
 
@@ -58,6 +60,7 @@ class DecrementHandler extends Handler<DecrementByOneCommand> {
   @override
   void handle(DecrementByOneCommand command) {
     counter -= 1;
+    queryCounterHandler.send(counter);
   }
 }
 
@@ -68,10 +71,28 @@ class QueryCounterResponse extends QueryResponse {
   QueryCounterResponse(this.counter);
 }
 
-class QueryCounterHandler extends Handler<QueryCounter> with RespondingHandler {
+class QueryCounterHandler extends Handler<QueryCounter>
+    with RespondingHandler, StreamingHandler {
+  late StreamController<QueryCounterResponse> _controller;
+
+  QueryCounterHandler() {
+    _controller = StreamController.broadcast();
+  }
+
   @override
   void handleWithResponse(
       QueryCounter message, void Function(QueryResponse response) respond) {
     respond(QueryCounterResponse(counter));
   }
+
+  @override
+  Stream<QueryResponse> open(QueryCounter message) {
+    return _controller.stream;
+  }
+
+  void send(int counter) {
+    _controller.add(QueryCounterResponse(counter));
+  }
 }
+
+QueryCounterHandler queryCounterHandler = QueryCounterHandler();

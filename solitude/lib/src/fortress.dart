@@ -5,10 +5,12 @@ import 'package:solitude/src/messages/message.dart';
 import 'package:solitude/src/messages/query.dart';
 import 'package:solitude/src/messages/stream.dart';
 import 'package:solitude/src/messages/terminate.dart';
+import 'package:solitude/src/streams/stream_fortress_tracker.dart';
 
 class Fortress {
   final SendPort _sendPort;
   final ReceivePort _receivePort = ReceivePort();
+  final _streamTracker = StreamFortressTracker();
 
   final _hanldlers = <Type, Handler>{};
 
@@ -21,16 +23,15 @@ class Fortress {
       if (message is TerminateMessage) {
         break;
       }
-      if (message is StreamMessage) {
-        // TODO Handle these messages
-        print("Received a stream message $message");
-        continue;
-      }
-      if (message is Message) {
+      if (message is StreamInitiateMessage) {
+        _handleStreamInitiateMessage(message);
+      } else if (message is StreamMessage) {
+        _streamTracker.handleResponse(message);
+      } else if (message is Message) {
         _handleMessage(message);
-        continue;
+      } else {
+        print("Fortress received an unrecognized message $message");
       }
-      print("Fortress received an unrecognized message $message");
     }
     _receivePort.close();
   }
@@ -53,6 +54,17 @@ class Fortress {
     } else {
       handler.handle(msg);
     }
+  }
+
+  void _handleStreamInitiateMessage(StreamInitiateMessage msg) {
+    final handler = _hanldlers[msg.query.runtimeType];
+    if (handler is! StreamingHandler) {
+      return;
+    }
+    final stream = handler.open(msg.query);
+    _streamTracker.startTracking(msg.channelId, stream, (message) {
+      _sendPort.send(message);
+    });
   }
 
   void _sendResponse(QueryResponse response) {

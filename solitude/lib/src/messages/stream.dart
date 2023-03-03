@@ -9,8 +9,12 @@ abstract class StreamMessage extends Message {
 
 class StreamInitiateMessage extends StreamMessage {
   final Query query;
-
   StreamInitiateMessage(super.channelId, this.query);
+}
+
+class StreamResponseMessage extends StreamMessage {
+  final QueryResponse response;
+  StreamResponseMessage(super.channelId, this.response);
 }
 
 class StreamOnListenMessage extends StreamMessage {
