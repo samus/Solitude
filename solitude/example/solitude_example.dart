@@ -73,11 +73,8 @@ class QueryCounterResponse extends QueryResponse {
 
 class QueryCounterHandler extends Handler<QueryCounter>
     with RespondingHandler, StreamingHandler {
-  late StreamController<QueryCounterResponse> _controller;
-
-  QueryCounterHandler() {
-    _controller = StreamController.broadcast();
-  }
+  final StreamController<QueryCounterResponse> _controller =
+      StreamController.broadcast();
 
   @override
   void handleWithResponse(

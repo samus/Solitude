@@ -15,4 +15,7 @@ mixin RespondingHandler<MessageType extends Message> on Handler<MessageType> {
 
 mixin StreamingHandler<MessageType extends Message> on Handler<MessageType> {
   Stream<QueryResponse> open(MessageType message);
+
+  @override
+  void handle(MessageType message) {}
 }

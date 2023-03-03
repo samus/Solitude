@@ -19,5 +19,9 @@ class StreamFortressTracker {
   void handleResponse(StreamMessage message) {
     final fort = _streamsFortresses[message.channelId];
     fort?.handleControlMessage(message);
+
+    if (message is StreamOnCancelMessage) {
+      _streamsFortresses.remove(message.channelId);
+    }
   }
 }
